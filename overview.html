@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Warranty X.0</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+  <script src="https://npmcdn.com/simple-statistics@2.0.0-beta3/dist/simple-statistics.min.js"></script>
+  <script src="https://d3js.org/queue.v1.min.js"></script>
+  <script src="https://d3js.org/topojson.v0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.9.1/d3-tip.js"></script>
+  <style>
+  .bar {
+  fill: steelblue;
+}
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+.country {
+  fill: #b8b8b8;
+  stroke: #fff;
+  stroke-width: .5px;
+  stroke-linejoin: round;
+}
+
+.graticule {
+  fill: none;
+  stroke: #000;
+  stroke-opacity: .3;
+  stroke-width: .5px;
+}
+
+.graticule-outline {
+  fill: none;
+  stroke: #333;
+  stroke-width: 1.5px;
+}
+
+  </style>
+</head>
+<body style="background-color: black">
+
+<nav class="navbar bg-dark navbar-dark">
+  <a class="navbar-brand" href="#">WARRANTY X.0</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="collapsibleNavbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="#">Link</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Link</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Link</a>
+      </li>    
+    </ul>
+  </div>  
+</nav>
+<br>
+
+<div class="container">
+
+        <div class="row"style="width:100%; ">
+                <div class="column"style="background-color: grey;width:30%">
+                        <div class="form-group" style="width: 50%;padding-left: 5%">
+                                <label for="sel1">Select list (select one):</label>
+                                <select class="form-control" id="sel1">
+                                  <option>Data 1</option>
+                                  <option>Data 2</option>
+                                  <option>Data 3</option>
+                                  <option>Data 4</option>
+                                </select>
+                                
+                                <button class="btn btn-primary btn-block"   type="submit">Action 1</button>
+                                <button class="btn btn-primary btn-block"   type="submit">Action 2</button>
+                                <button class="btn btn-primary btn-block"   type="submit">Action 3</button>
+                                <button class="btn btn-primary btn-block"   type="submit">Action 4</button>
+                           
+                        </div>
+
+                    
+                </div>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <div class="column"style="background-color: grey;width:35%">
+                        <form>
+                                <label><input type="radio" name="dataset" value="apples" checked> Data 1</label>
+                                <label><input type="radio" name="dataset" value="oranges"> Data 2</label>
+                              </form>
+                    <svg width="350" height="200" id="svgDonut"></svg>
+                </div>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <div class="column" style="background-color: grey;width:30%">
+                        <form>
+                                <label><input type="radio" name="dataset" value="apples" checked> Data 1</label>
+                                <label><input type="radio" name="dataset" value="oranges"> Data 2</label>
+                              </form>
+                        <svg width="350" height="200" id="svgPie"></svg>
+                </div>
+              </div>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <div class="row"style="width:100% ">
+            <div class="column"style="background-color: grey;width:30%" id="svgBar">
+               
+            </div>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <div class="column"style="background-color: grey;width:35%">
+               
+            </div>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <div class="column" style="background-color: grey;width:30%"id="svgLine">
+                
+            </div>
+          </div>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          <div class="row"style="width:100% ">
+            <div class="column"style="background-color: grey;width:100%;"  id="svgworldChart">
+                
+            </div>
+           
+          </div>
+
+
+ </div>
+
+</body>
+</html>
+
+
+<script>
+
+// var opts = {
+//                  url: 'http://localhost:3000/rows'
+//              };
+//              fetch(opts)
+//                  .then((res) => {
+//                      if (res.ok) {
+//                          return res.json();
+//                      }
+//                   })
+//                   .then((rows) => {
+//                       for (let row of rows) {
+//                           // row will be a mysql row -- you can loop over these and do what you want with them
+//                       }
+//                    })
+//                    .catch(console.log);
+//console.log(opts);
+
+$.get('http://localhost:3000/rows', {}, function(data){
+        console.log(data)
+   });
+
+
+///////////////////////////////DOnut CHart///////////////////////////////////////////////////////////
+var width = 350,
+    height = 200,
+    radius = Math.min(width, height) / 2;
+
+var color = d3.scale.category20();
+
+var pie = d3.layout.pie()
+    .value(function(d) { return d.apples; })
+    .sort(null);
+
+var arc = d3.svg.arc()
+    .innerRadius(radius - 100)
+    .outerRadius(radius - 20);
+
+var svgDonut = d3.select("#svgDonut")
+    .attr("width", width)
+    .attr("height", height)
+    .append("g")
+    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+d3.tsv("output_predict_cp.tsv", type, function(error, data) {
+  for (var i = 0; i < data.length; i++) {
+        console.log(data[i].DTC_VIN_day);
+       // console.log(data[i].Age);
+    }
+  var pathDonut = svgDonut.datum(data).selectAll("path")
+      .data(pie)
+    .enter().append("path")
+      .attr("fill", function(d, i) { return color(i); })
+      .attr("d", arc);
+
+  d3.selectAll("input")
+      .on("change", change);
+
+  var timeoutDonut = setTimeout(function() {
+    d3.select("input[value=\"oranges\"]").property("checked", true).each(change);
+  }, 2000);
+
+  function change() {
+    var value = this.value;
+   clearTimeout(timeoutDonut);
+    pie.value(function(d) { return d[value]; }); // change the value function
+    pathDonut = pathDonut.data(pie); // compute the new angles
+    pathDonut.attr("d", arc); // redraw the arcs
+  }
+});
+
+function type(d) {
+  d.apples = +d.apples;
+  d.oranges = +d.oranges;
+  return d;
+}
+
+/////////////////////////////////////////////Pie Chart Begins//////////////////////////////
+
+
+var widthPie = 350,
+    heightPie = 200,
+    radiuspie = Math.min(width, height) / 2;
+
+var colorPie = d3.scale.category20();
+
+var pieChart = d3.layout.pie()
+    .value(function(d) { return d.apples; })
+    .sort(null);
+
+var arcPie = d3.svg.arc()
+    .innerRadius(radiuspie - 100)
+    .outerRadius(radiuspie - 20);
+
+var svgPie = d3.select("#svgPie")
+    .attr("width", widthPie)
+    .attr("height", heightPie)
+    .append("g")
+    .attr("transform", "translate(" + widthPie / 2 + "," + heightPie / 2 + ")");
+
+d3.tsv("data.tsv", type, function(error, data) {
+  var pathPie = svgPie.datum(data).selectAll("path")
+      .data(pieChart)
+    .enter().append("path")
+      .attr("fill", function(d, i) { return color(i); })
+      .attr("d", arcPie);
+
+  d3.selectAll("input")
+      .on("change", changePie);
+
+  var timeoutPie = setTimeout(function() {
+    d3.select("input[value=\"oranges\"]").property("checked", true).each(changePie);
+  }, 2000);
+
+  function changePie() {
+    var value = this.value;
+    clearTimeout(timeoutPie);
+    pieChart.value(function(d) { return d[value]; }); // change the value function
+    pathPie = pathPie.data(pieChart); // compute the new angles
+    pathPie.attr("d", arcPie); // redraw the arcs
+  }
+});
+
+function type(d) {
+  d.apples = +d.apples;
+  d.oranges = +d.oranges;
+  return d;
+}
+
+
+
+/////////////////////////////////////////////Bar CHart Begins///////////////////////////////
+
+
+
+var margin = {top: 20, right: 20, bottom: 50, left: 40},
+            //width = 960 - margin.left - margin.right,
+            width = 250 - margin.left - margin.right,
+            height = 200 - margin.top - margin.bottom;
+         
+        var x = d3.scale.ordinal()
+            .rangeRoundBands([0, width], .1);
+         
+        var y = d3.scale.linear()
+            .range([height, 0 + margin.top ]);
+         
+        var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom");
+         
+        var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left")
+            .ticks(10); //  .ticks(10, "%");
+         
+        var svgBar = d3.select("#svgBar").append('svg')
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+         
+        d3.tsv("NEwDAta2.tsv", type, function(error, data) {
+          x.domain(data.map(function(d) { return d.DTC_status_conv; console.log(d.DTC_status_conv);}));
+          y.domain([0, d3.max(data, function(d) { return d.date; })]);
+         console.log(data);
+          svgBar.append("g")
+              .attr("class", "x axis")
+              .attr("transform", "translate(0," + height + ")")
+              .call(xAxis)
+            .append("text")             // text label for the x axis
+                .attr("x", (width / 2) )
+                .attr("y",  20 )
+                .attr("dy", ".71em")
+                .style("text-anchor", "middle")
+                .style("font-size", "16px") 
+                .text("");
+                
+         // add y-axis
+         svgBar.append("g")
+              .attr("class", "y axis")
+              .call(yAxis)
+            .append("text") // and text1
+              .attr("transform", "rotate(-90)")
+              .attr("y", 6)
+              .attr("dy", ".71em")
+              .style("text-anchor", "end")
+              .style("font-size", "16px") 
+              .text("");
+         
+              svgBar.selectAll(".bar")
+              .data(data)
+            .enter().append("rect")
+              .attr("class", "bar")
+              .attr("x", function(d) { return x(d.quarter); })
+              .attr("width", x.rangeBand())
+              .attr("y", function(d) { return y(d.revenue); })
+              .attr("height", function(d) { return height - y(d.revenue); });
+              
+              
+        // add a title
+        // svgBar.append("text")
+        //         .attr("x", (width / 2))             
+        //         .attr("y", 0 + (margin.top / 2))
+        //         .attr("text-anchor", "middle")  
+        //         .style("font-size", "24px") 
+        //         //.style("text-decoration", "underline")  
+        //         .text("Average Revenue 2012 in Euro");
+         
+        });
+         
+        function type(d) {
+          d.revenue = +d.revenue;
+          return d;
+        }
+
+/////////////////////////////////////////BAr Chart Ends//////////////////////////////////////////////////////////////////////
+
+
+
+</script>
+
+
+<script>
+    ///////////////////////////////////////Line chart Begins///////////////////////////////////////////////////////////////////////
+    
+ 
+ // Set the dimensions of the canvas / graph
+ var	marginLine = {top: 30, right: 20, bottom: 30, left: 50},
+     widthLine = 600 - marginLine.left - marginLine.right,
+     heightLine = 270 - marginLine.top - marginLine.bottom;
+  
+ // Parse the date / time
+ var	parseDate = d3.time.format("%d-%b-%y").parse;
+  
+ // Set the ranges
+ var	xLine = d3.time.scale().range([0, widthLine]);
+ var	yLine = d3.scale.linear().range([heightLine, 0]);
+  
+ // Define the axes
+ var	xAxisLine = d3.svg.axis().scale(xLine)
+     .orient("bottom").ticks(5);
+  
+ var	yAxisLine = d3.svg.axis().scale(yLine)
+     .orient("left").ticks(5);
+  
+ // Define the line
+ var	valueline = d3.svg.line()
+     .x(function(d) { return x(d.date); })
+     .y(function(d) { return y(d.close); });
+     
+ // Adds the svg canvas
+ var	svgLine = d3.select("#svgLine")
+     .append("svg")
+         .attr("width", widthLine + marginLine.left + marginLine.right)
+         .attr("height", heightLine + marginLine.top + marginLine.bottom)
+     .append("g")
+         .attr("transform", "translate(" + marginLine.left + "," + marginLine.top + ")");
+  
+ // Get the data
+ d3.csv("dataLineChart.csv", function(error, data) {
+     data.forEach(function(d) {
+         d.date = parseDate(d.date);
+         d.close = +d.close;
+         console.log(d.date);
+     });
+  
+     // Scale the range of the data
+     xLine.domain(d3.extent(data, function(d) { return d.date; }));
+     yLine.domain([0, d3.max(data, function(d) { return d.close; })]);
+  
+     // Add the valueline path.
+     svgLine.append("path")	
+         .attr("class", "line")
+         .attr("d", valueline(data));
+  
+     // Add the X Axis
+     svgLine.append("g")		
+         .attr("class", "x axis")
+         .attr("transform", "translate(0," + heightLine + ")")
+         .call(xAxis);
+  
+     // Add the Y Axis
+     svgLine.append("g")		
+         .attr("class", "y axis")
+         .call(yAxisLine);
+  
+ });
+  
+ 
+</script>
+
+
+<script>
+
+        var widthWorld = 960,
+            heightWorld = 500;
+        
+        var centroid = d3.geo.path()
+            .projection(function(d) { return d; })
+            .centroid;
+        
+        var projection = d3.geo.orthographic()
+            .scale(248)
+            .clipAngle(90);
+        
+        var pathWOrldMAp = d3.geo.path()
+            .projection(projection);
+        
+        var graticule = d3.geo.graticule()
+            .extent([[-180, -90], [180 - .1, 90 - .1]]);
+        
+        var svgWOrldMAp = d3.select("#svgworldChart").append("svg")
+            .attr("width", widthWorld)
+            .attr("height", heightWorld);
+        
+        var lineWOrld = svgWOrldMAp.append("path")
+            .datum(graticule)
+            .attr("class", "graticule")
+            .attr("d", pathWOrldMAp);
+        
+            svgWOrldMAp.append("circle")
+            .attr("class", "graticule-outline")
+            .attr("cx", widthWorld / 2)
+            .attr("cy", heightWorld / 2)
+            .attr("r", projection.scale());
+        
+        var title = svgWOrldMAp.append("text")
+            .attr("x", widthWorld / 2)
+            .attr("y", heightWorld * 3 / 5);
+        
+        var rotate = d3_geo_greatArcInterpolator();
+        
+        d3.json("readme-world-110m.json", function(error, world) {
+          var countries = topojson.object(world, world.objects.countries).geometries,
+              i = -1,
+              n = countries.length;
+        
+          var country = svgWOrldMAp.selectAll(".country")
+              .data(countries)
+            .enter().insert("path", ".graticule")
+              .attr("class", "country")
+              .attr("d", pathWOrldMAp);
+        
+          step();
+        
+          function step() {
+            if (++i >= n) i = 0;
+        
+            title.text(countries[i].id);
+        
+            country.transition()
+                .style("fill", function(d, j) { return j === i ? "red" : "#b8b8b8"; });
+        
+            d3.transition()
+                .delay(250)
+                .duration(1250)
+                .tween("rotate", function() {
+                  var point = centroid(countries[i]);
+                  rotate.source(projection.rotate()).target([-point[0], -point[1]]).distance();
+                  return function(t) {
+                    projection.rotate(rotate(t));
+                    country.attr("d", pathWOrldMAp);
+                    lineWOrld.attr("d", pathWOrldMAp);
+                  };
+                })
+              .transition()
+                .each("end", step);
+          }
+        });
+        
+        var d3_radians = Math.PI / 180;
+        
+        function d3_geo_greatArcInterpolator() {
+          var x0, y0, cy0, sy0, kx0, ky0,
+              x1, y1, cy1, sy1, kx1, ky1,
+              d,
+              k;
+        
+          function interpolate(t) {
+            var B = Math.sin(t *= d) * k,
+                A = Math.sin(d - t) * k,
+                x = A * kx0 + B * kx1,
+                y = A * ky0 + B * ky1,
+                z = A * sy0 + B * sy1;
+            return [
+              Math.atan2(y, x) / d3_radians,
+              Math.atan2(z, Math.sqrt(x * x + y * y)) / d3_radians
+            ];
+          }
+        
+          interpolate.distance = function() {
+            if (d == null) k = 1 / Math.sin(d = Math.acos(Math.max(-1, Math.min(1, sy0 * sy1 + cy0 * cy1 * Math.cos(x1 - x0)))));
+            return d;
+          };
+        
+          interpolate.source = function(_) {
+            var cx0 = Math.cos(x0 = _[0] * d3_radians),
+                sx0 = Math.sin(x0);
+            cy0 = Math.cos(y0 = _[1] * d3_radians);
+            sy0 = Math.sin(y0);
+            kx0 = cy0 * cx0;
+            ky0 = cy0 * sx0;
+            d = null;
+            return interpolate;
+          };
+        
+          interpolate.target = function(_) {
+            var cx1 = Math.cos(x1 = _[0] * d3_radians),
+                sx1 = Math.sin(x1);
+            cy1 = Math.cos(y1 = _[1] * d3_radians);
+            sy1 = Math.sin(y1);
+            kx1 = cy1 * cx1;
+            ky1 = cy1 * sx1;
+            d = null;
+            return interpolate;
+          };
+        
+          return interpolate;
+        }
+        
+        </script>
